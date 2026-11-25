@@ -13,6 +13,14 @@ The project combines system monitoring, brute-force detection, File Integrity Mo
 - **Security Dashboard:** View system statistics, security alerts, and event severity.
 - **REST API:** Access monitoring and security features through FastAPI endpoints.
 
+## 📸 Project Screenshots
+
+### CyberShield Security Dashboard
+
+![CyberShield Dashboard](screenshots/dashboard.png)
+
+![CyberShield Dashboard](screenshots/dashboard.png)
+
 ## 🧰 Technology Stack
 
 | Technology | Purpose |
