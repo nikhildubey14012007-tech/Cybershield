@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield | SIEM Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #0b1120;
+            color: #e5e7eb;
+        }
+
+        header {
+            background: #111c30;
+            padding: 22px 30px;
+            border-bottom: 1px solid #26364f;
+        }
+
+        header h1 {
+            color: #38bdf8;
+            font-size: 28px;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        main {
+            padding: 30px;
+        }
+
+        .status {
+            background: #12352d;
+            color: #4ade80;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #172338;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #26364f;
+        }
+
+        .card h3 {
+            color: #94a3b8;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            color: #38bdf8;
+            font-size: 30px;
+        }
+
+        .section {
+            margin-top: 35px;
+            background: #172338;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #26364f;
+        }
+
+        .section h2 {
+            color: #38bdf8;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0369a1;
+        }
+
+        #events {
+            margin-top: 20px;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            padding: 30px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header>
+    <h1>🛡️ CyberShield SIEM</h1>
+    <p>Security Information and Event Management Dashboard</p>
+</header>
+
+<main>
+
+    <div class="status">
+        ● CyberShield Dashboard Interface Loaded
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>System Monitoring</h3>
+            <h2>Active</h2>
+        </div>
+
+        <div class="card">
+            <h3>Security Alerts</h3>
+            <h2 id="alertCount">--</h2>
+        </div>
+
+        <div class="card">
+            <h3>CPU Usage</h3>
+            <h2 id="cpuUsage">--</h2>
+        </div>
+
+        <div class="card">
+            <h3>RAM Usage</h3>
+            <h2 id="ramUsage">--</h2>
+        </div>
+
+        <div class="card">
+            <h3>Disk Usage</h3>
+            <h2 id="diskUsage">--</h2>
+        </div>
+
+    </div>
+    <div class="cards">
+    <div class="card">
+        <h3>High Severity</h3>
+        <h2 id="highCount" style="color:#ef4444;">0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Medium Severity</h3>
+        <h2 id="mediumCount" style="color:#f59e0b;">0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Low Severity</h3>
+        <h2 id="lowCount" style="color:#22c55e;">0</h2>
+    </div>
+</div>
+     
+    <div class="section">
+    <h2>Security Analytics</h2>
+
+    <div style="max-width:600px; margin:auto;">
+        <canvas id="securityChart"></canvas>
+    </div>
+</div>
+
+    <div class="section">
+        <h2>Security Event Monitoring</h2>
+        <button onclick="loadEvents()">Refresh Security Events</button>
+        <div id="events">Click refresh to load events.</div>
+    </div>
+
+</main>
+
+<footer>
+    CyberShield SIEM | Educational Cybersecurity Project
+</footer>
+
+<script>
+let securityChartInstance = null;
+
+async function loadEvents() {
+    const eventsDiv = document.getElementById("events");
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/security-events");
+
+        if (!response.ok) {
+            throw new Error("API request failed");
+        }
+
+        const data = await response.json();
+
+        document.getElementById("alertCount").textContent =
+            data.total_alerts;
+
+            const events = data.security_events;
+
+const high = events.filter(e => e.severity === "HIGH").length;
+const medium = events.filter(e => e.severity === "MEDIUM").length;
+const low = events.filter(e => e.severity === "LOW").length;
+
+const chartData = [high, medium, low];
+
+
+
+const ctx = document.getElementById("securityChart");
+
+if (typeof Chart === "undefined") {
+    throw new Error("Chart.js library is not loaded");
+}
+
+if (securityChartInstance === null) {
+    securityChartInstance = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["High", "Medium", "Low"],
+            datasets: [{
+                data: chartData,
+                backgroundColor: [
+                    "#ef4444",
+                    "#f59e0b",
+                    "#22c55e"
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#e5e7eb"
+                    }
+                }
+            }
+        }
+    });
+} else {
+    securityChartInstance.data.datasets[0].data = chartData;
+    securityChartInstance.update();
+}
+document.getElementById("highCount").textContent =
+    events.filter(event => event.severity === "HIGH").length;
+
+document.getElementById("mediumCount").textContent =
+    events.filter(event => event.severity === "MEDIUM").length;
+
+document.getElementById("lowCount").textContent =
+    events.filter(event => event.severity === "LOW").length;
+
+        if (data.security_events.length === 0) {
+            eventsDiv.textContent = "No security events found.";
+            return;
+        }
+
+        eventsDiv.replaceChildren();
+
+        data.security_events.forEach(event => {
+            const item = document.createElement("p");
+
+const severityColor = {
+    HIGH: "#ef4444",
+    MEDIUM: "#f59e0b",
+    LOW: "#22c55e"
+};
+
+item.style.padding = "12px";
+item.style.marginBottom = "10px";
+item.style.background = "#0b1120";
+item.style.borderRadius = "8px";
+item.style.borderLeft =
+    `4px solid ${severityColor[event.severity] || "#64748b"}`;
+
+item.textContent =
+    `${event.event_type} | ${event.source} | ${event.severity}`;
+
+eventsDiv.appendChild(item);
+        });
+
+       } catch (error) {
+        console.error("CyberShield Events Error:", error);
+
+        eventsDiv.textContent =
+            "Dashboard Error: " + error.message;
+    }
+}
+
+async function loadSystemInfo() {
+    try {
+        const response = await fetch(
+    "http://127.0.0.1:8000/live-system-info"
+);
+
+        if (!response.ok) {
+            throw new Error("System API request failed");
+        }
+
+        const system = await response.json();
+
+        document.getElementById("cpuUsage").textContent =
+            system.cpu_usage_percent + "%";
+
+        document.getElementById("ramUsage").textContent =
+            system.memory_used_percent + "%";
+
+        document.getElementById("diskUsage").textContent =
+            system.disk_used_percent + "%";
+
+    } catch (error) {
+        console.error("System monitoring error:", error);
+    }
+}
+
+loadSystemInfo();
+loadEvents();
+
+setInterval(loadSystemInfo, 15000);
+setInterval(loadEvents, 15000);
+
+</script>
+
+</body>
+</html>
